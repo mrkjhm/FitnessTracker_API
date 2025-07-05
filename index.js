@@ -17,15 +17,24 @@ const app = express();
 
 
 app.use(express.json());
-app.use(express.urlencoded({extended:true})); 
+app.use(express.urlencoded({extended:true}));
 
 const corsOptions = {
-    origin: ['http://localhost:3000', 'https://fitlog-peach.vercel.app'],
-    credentials: true,
-    optionsSuccessStatus: 200
-}
+    origin: function (origin, callback) {
+        const allowedOrigins = ['http://localhost:3000', 'https://fitlog-peach.vercel.app'];
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error("CORS not allowed for this origin"));
+        }
+    },
+    credentials: true
+};
+
 
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // 💡 handle preflight requests
+
 
 app.use("/users", userRoutes);
 app.use("/workouts", workoutRoutes)
