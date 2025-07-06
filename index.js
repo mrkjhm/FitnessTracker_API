@@ -17,7 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Simplified and safer CORS config
 const corsOptions = {
-    origin: ["http://localhost:3000", "https://fitness-fitness.vercel.app/"],
+    origin: ["http://localhost:3000", "https://fitlog-fitness.vercel.app"],
     credentials: true,
 };
 app.use(cors(corsOptions));
