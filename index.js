@@ -1,52 +1,40 @@
+// server.js or index.js
 const express = require("express");
 const mongoose = require("mongoose");
-
 const cors = require("cors");
-require('dotenv').config();
+require("dotenv").config();
 
-// Allows access to routes defined within our application
+// Routes
 const userRoutes = require("./routes/user");
 const workoutRoutes = require("./routes/workout");
 const { errorHandler } = require("./auth");
 
-
-
-
-// Environment setup
 const app = express();
 
-
+// Middleware
 app.use(express.json());
-app.use(express.urlencoded({extended:true}));
+app.use(express.urlencoded({ extended: true }));
 
+// Simplified and safer CORS config
 const corsOptions = {
-    origin: function (origin, callback) {
-        const allowedOrigins = ['http://localhost:3000', 'https://fitlog-peach.vercel.app'];
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error("CORS not allowed for this origin"));
-        }
-    },
-    credentials: true
+    origin: ["http://localhost:3000", "https://fitlog-peach.vercel.app"],
+    credentials: true,
 };
-
-
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // 💡 handle preflight requests
+app.options("*", cors(corsOptions));
 
-
+// Routes
 app.use("/users", userRoutes);
-app.use("/workouts", workoutRoutes)
+app.use("/workouts", workoutRoutes);
+app.use(errorHandler);
 
-app.use(errorHandler)
-
-// Database Connection
+// MongoDB connection
 mongoose.connect(process.env.MONGODB_STRING);
-mongoose.connection.once('open', () => console.log('Now Connected to MongoDB Atlas'))
+mongoose.connection.once("open", () =>
+    console.log("Now Connected to MongoDB Atlas")
+);
 
-
-
+// Start server
 if (require.main === module) {
     const port = process.env.PORT || 4000;
     app.listen(port, () => {
@@ -54,9 +42,4 @@ if (require.main === module) {
     });
 }
 
-
 module.exports = { app, mongoose };
-
-
-
-
