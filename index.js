@@ -27,6 +27,11 @@ app.options("*", cors(corsOptions));
 app.get("/ping", (req, res) => {
     res.status(200).send("pong");
 });
+
+app.get("/", (req, res) => {
+    res.status(200).send("Backend is live 🚀");
+});
+
 // Routes
 app.use("/users", userRoutes);
 app.use("/workouts", workoutRoutes);
