@@ -23,6 +23,10 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
 
+
+app.get("/ping", (req, res) => {
+    res.status(200).send("pong");
+});
 // Routes
 app.use("/users", userRoutes);
 app.use("/workouts", workoutRoutes);
