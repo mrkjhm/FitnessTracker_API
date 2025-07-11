@@ -7,7 +7,7 @@ const { errorHandler } = auth;
 
 module.exports.registerUser = async (req, res) => {
 	try {
-		const { userName, email, mobileNo, password, confirmPassword } = req.body;
+		const { userName, email, mobileNo, info, password, confirmPassword } = req.body;
 
 		// Check if user already exists
 		const existingUser = await User.findOne({ email });
@@ -18,6 +18,10 @@ module.exports.registerUser = async (req, res) => {
 		// Validate email format
 		if (!email.includes('@')) {
 			return res.status(400).send({ message: 'Email invalid' });
+		}
+
+		if(!info) {
+			return res.status(400).send({ message: 'Short description is required.' })
 		}
 
 		// Validate password length
@@ -38,6 +42,7 @@ module.exports.registerUser = async (req, res) => {
 			userName,
 			email,
 			mobileNo,
+			info,
 			password: bcrypt.hashSync(password, 10),
 		});
 

@@ -21,6 +21,10 @@ const userSchema = new mongoose.Schema({
     mobileNo: {
         type: String,
         required: [true, 'Mobile Number is required']
+    },
+    info: {
+        type: String,
+        required: [true, 'Info Number is required']
     }
 })
 

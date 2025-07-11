@@ -76,32 +76,31 @@ module.exports.updateWorkout = (req, res) => {
 
     const { name, hours, minutes, seconds } = req.body;
 
-    const parsedHours = parseInt(hours) || 0;
-    const parsedMinutes = parseInt(minutes) || 0;
-    const parsedSeconds = parseInt(seconds) || 0;
-
-    Workout.findOneAndUpdate(
-        { _id: workoutId, userId: userId },
-        {
-            $set: {
-                name,
-                duration: {
-                    hours: parsedHours,
-                    minutes: parsedMinutes,
-                    seconds: parsedSeconds
-                }
+    Workout.findOne({ _id: workoutId, userId: userId })
+        .then(workout => {
+            if (!workout) {
+                return res.status(404).json({
+                    error: 'Workout not found or you do not have permission to update this workout'
+                });
             }
-        },
-        { new: true, runValidators: true }
-    )
-    .then(workout => {
-        if (!workout) {
-            return res.status(404).json({ error: 'Workout not found or you do not have permission to update this workout' });
-        }
-        return res.status(200).json({ message: 'Workout updated successfully', updatedWorkout: workout });
-    })
-    .catch(err => errorHandler(res, err));
+
+            // Preserve existing values if not provided in request
+            workout.name = name || workout.name;
+            workout.duration.hours = hours !== undefined ? parseInt(hours) : workout.duration.hours;
+            workout.duration.minutes = minutes !== undefined ? parseInt(minutes) : workout.duration.minutes;
+            workout.duration.seconds = seconds !== undefined ? parseInt(seconds) : workout.duration.seconds;
+
+            return workout.save();
+        })
+        .then(updated => {
+            return res.status(200).json({
+                message: 'Workout updated successfully',
+                updatedWorkout: updated
+            });
+        })
+        .catch(err => errorHandler(res, err));
 };
+
 
 
 
