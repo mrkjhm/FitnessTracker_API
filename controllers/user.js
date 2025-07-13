@@ -82,7 +82,7 @@ module.exports.loginUser = (req, res) => {
 						});
 
 					} else {
-						return res.status(401).send({ message: 'Email and password do not match' });
+						return res.status(401).send({ message: 'Incorrect email or password' });
 					}
 				}
 			})
@@ -90,7 +90,6 @@ module.exports.loginUser = (req, res) => {
 	} else {
 		return res.status(400).send({ message: 'Invalid Email' })
 	}
-
 }
 
 
