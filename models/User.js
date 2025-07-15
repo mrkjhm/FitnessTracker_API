@@ -25,6 +25,10 @@ const userSchema = new mongoose.Schema({
     info: {
         type: String,
         required: [true, 'Info Number is required']
+    },
+    avatar: {
+        type: String,
+        default: 'default'
     }
 })
 

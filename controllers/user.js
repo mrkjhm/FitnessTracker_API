@@ -1,7 +1,8 @@
 const bcrypt = require("bcrypt")
 const User = require("../models/User")
-const auth = require("../auth")
+const auth = require("../middleware/auth")
 const { errorHandler } = auth;
+const { cloudinary } = require("../middleware/cloudinary");
 
 
 
@@ -9,45 +10,63 @@ module.exports.registerUser = async (req, res) => {
 	try {
 		const { userName, email, mobileNo, info, password, confirmPassword } = req.body;
 
+		let avatarUrl = '';
+		if (req.file?.path) {
+			avatarUrl = req.file.path;
+		}
+
+		const deleteUploadedImage = async () => {
+			if (avatarUrl) {
+				const publicId = avatarUrl.split('/').pop().split('.')[0];
+				await cloudinary.uploader.destroy(`fitness-avatars/${publicId}`);
+			}
+		};
+
 		// Check if user already exists
 		const existingUser = await User.findOne({ email });
 		if (existingUser) {
+			await deleteUploadedImage();
 			return res.status(409).send({ message: 'Email already exists' });
-		}
-		
-		// Validate email format
-		if (!email.includes('@')) {
-			return res.status(400).send({ message: 'Email invalid' });
-		}
-
-		if(!info) {
-			return res.status(400).send({ message: 'Short description is required.' })
-		}
-
-		// Validate password length
-		if (password.length < 8) {
-			return res.status(400).send({ message: 'Password must be at least 8 characters' });
-		}
-
-		if (mobileNo.length !== 11) {
-			return res.status(400).send({ message: 'Mobile number must be 11 digits'})
-		}
-
-		if (password !== confirmPassword) {
-			return res.status(400).send({ message: 'Password do not match'})
 		}
 
 		// Check for missing fields
 		if (!userName || !email || !mobileNo || !info || !password || !confirmPassword) {
+			await deleteUploadedImage();
 			return res.status(400).send({ message: 'All fields are required.' });
 		}
 
-		// Create and save new user
+		if (!email.includes('@')) {
+			await deleteUploadedImage();
+			return res.status(400).send({ message: 'Email invalid' });
+		}
+
+		if (info.trim() === '') {
+			await deleteUploadedImage();
+			return res.status(400).send({ message: 'Short description is required.' });
+		}
+
+		if (password.length < 8) {
+			await deleteUploadedImage();
+			return res.status(400).send({ message: 'Password must be at least 8 characters' });
+		}
+
+		if (mobileNo.length !== 11) {
+			await deleteUploadedImage();
+			return res.status(400).send({ message: 'Mobile number must be 11 digits' });
+		}
+
+		if (password !== confirmPassword) {
+			await deleteUploadedImage();
+			return res.status(400).send({ message: 'Passwords do not match' });
+		}
+
+		// Save user
 		const newUser = new User({
 			userName,
 			email,
 			mobileNo,
 			info,
+			avatar: avatarUrl,
 			password: bcrypt.hashSync(password, 10),
 		});
 
@@ -142,5 +161,36 @@ module.exports.updateProfile = async (req, res) => {
 		});
 	} catch (error) {
 		errorHandler(error, req, res);
+	}
+};
+
+module.exports.updateAvatar = async (req, res) => {
+	try {
+		const userId = req.user.id;
+
+		if (!req.file || !req.file.path) {
+			return res.status(400).json({ message: 'No image uploaded' });
+		}
+
+		const user = await User.findById(userId);
+		if (!user) return res.status(404).json({ message: 'User not found' });
+
+		// Optional: delete old avatar from Cloudinary
+		if (user.avatar) {
+			try {
+				const publicId = user.avatar.split('/').pop().split('.')[0];
+				await cloudinary.uploader.destroy(`fitness-avatars/${publicId}`);
+			} catch (err) {
+				console.warn('Failed to delete old avatar:', err.message);
+			}
+		}
+
+		user.avatar = req.file.path;
+		await user.save();
+
+		res.status(200).json({ message: 'Avatar updated', avatar: user.avatar });
+	} catch (err) {
+		console.error('Update avatar error:', err.message);
+		res.status(500).json({ message: 'Server error' });
 	}
 };

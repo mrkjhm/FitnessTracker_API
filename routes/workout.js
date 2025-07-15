@@ -1,7 +1,7 @@
 const express = require("express")
 const workoutController = require("../controllers/workout")
 const router = express.Router();
-const { verify } = require("../auth")
+const { verify } = require("../middleware/auth")
 
 
 router.post("/addWorkout", verify, workoutController.addWorkout);

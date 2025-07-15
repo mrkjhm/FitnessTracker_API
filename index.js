@@ -7,7 +7,7 @@ require("dotenv").config();
 // Routes
 const userRoutes = require("./routes/user");
 const workoutRoutes = require("./routes/workout");
-const { errorHandler } = require("./auth");
+const { errorHandler } = require("./middleware/auth");
 
 const app = express();
 

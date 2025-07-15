@@ -1,5 +1,5 @@
 const Workout = require("../models/Workout")
-const { errorHandler } = require("../auth")
+const { errorHandler } = require("../middleware/auth")
 
 
 
